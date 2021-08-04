@@ -21,7 +21,7 @@ public class Server {
         //Buffers the reading so that its legible
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in) );
 
-        //Strings that will be used the store what the user has said
+        //Strings that will be used the store what has been said
         String string1 = "";
         String string2 = "";
 
@@ -34,10 +34,10 @@ public class Server {
             //Output to the console that the client has said something
             System.out.println("Client says: " + string1);
 
-            //Store what was outputted to the console to this string
+            //Read in what the server wants to say and stores it to this string
             string2 = br.readLine();
 
-            //
+            //Writes what was read in from the server side, and then will output it to the client socket side
             dout.writeUTF(string2);
             dout.flush();
         }
@@ -45,10 +45,10 @@ public class Server {
         //Closing of the data input stream
         din.close();
         
-        //Closing of the reading socket because the client has typed in stop
+        //Closing of the reading socket because the client/server has typed in stop
         clientSocket.close();
 
-        //Closing of the server socket since the client has exited
+        //Closing of the server socket since the client/server has exited
         serverSocket.close();
 
     }//Close of Main Runner
