@@ -2,16 +2,27 @@ import java.net.*;
 import java.io.*;
 
 public class Client {
+
+    private static DatagramSocket broadSock = null;
+    private static String clientHostName = null;
+    private static InetAddress clientAddress = null;
+
     public static void main (String[]args) throws UnknownHostException, IOException {
-        
+               
         //Client socket
         Socket clientSocket = new Socket("localhost",1234);
+
+        //Broadcast a Packet to Network for discovery
+        clientHostName = InetAddress.getLocalHost().getHostName();
+        clientAddress = InetAddress.getLocalHost();
+
+        broadcast(clientHostName, clientAddress); 
 
         //Reads in what the server types from the socket
         DataInputStream din = new DataInputStream(clientSocket.getInputStream() );
 
         //Outputs what the server types from the socket
-        DataOutputStream dout = new DataOutputStream( clientSocket.getOutputStream() );
+        DataOutputStream dout = new DataOutputStream(clientSocket.getOutputStream() );
 
         //BufferedReader to make things more legible
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in) );
@@ -45,5 +56,16 @@ public class Client {
         clientSocket.close();
 
     }//End of main runner
+
+    // Function to Broadcast the clients hostname and local address to the network
+    public static void broadcast(String nodeName, InetAddress address) throws IOException {
+        broadSock = new DatagramSocket();
+        broadSock.setBroadcast(true);
+        
+        byte[] buf = nodeName.getBytes();
+        DatagramPacket p = new DatagramPacket(buf, buf.length, address, 12121);
+        broadSock.send(p);
+        broadSock.close();
+    }
 
 }//End of Client class
