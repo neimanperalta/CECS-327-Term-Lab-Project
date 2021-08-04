@@ -4,20 +4,23 @@ import java.io.*;
 public class Client {
     public static void main (String[]args) throws UnknownHostException, IOException {
         
-        //Broadcast to network
-        System.out.println("");
 
+        Socket clientSocket = new Socket("localhost",1234);
 
-        //Create listen socket
-        Socket hostSock = new Socket("localhost", 32721);
-        DataInputStream in = new DataInputStream(in);
+        DataOutputStream dout = new DataOutputStream( clientSocket.getOutputStream() );
 
-        //Attempt at having one socket do commands, and another socket that gives input from those commands
-        Socket writing = new Socket("localhost",32722);
+        //Writing to the client server
+        dout.writeUTF("HELLO PLEASE WORK ;C");
 
+        //Forces bytes to be written to the stream
+        dout.flush();
 
-        //close socket
-        hostSock.close();
-    
-    }
-}
+        //Closing of the data output stream
+        dout.close();
+
+        //Closing of the client socket
+        clientSocket.close();
+
+    }//End of main runner
+
+}//End of Client class
