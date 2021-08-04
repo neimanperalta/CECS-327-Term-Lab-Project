@@ -1,4 +1,8 @@
 import java.net.*;
+import java.util.List;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.stream.Collectors;
 import java.io.*;
 
 public class Client {
@@ -12,10 +16,11 @@ public class Client {
         //Client socket
         Socket clientSocket = new Socket("localhost",1234);
 
-        //Broadcast a Packet to Network for discovery
+        //Retrieve the host name and address of client
         clientHostName = InetAddress.getLocalHost().getHostName();
         clientAddress = InetAddress.getLocalHost();
 
+        //Broadcast a Packet to Network for discovery
         broadcast(clientHostName, clientAddress); 
 
         //Reads in what the server types from the socket
@@ -57,15 +62,41 @@ public class Client {
 
     }//End of main runner
 
-    // Function to Broadcast the clients hostname and local address to the network
+    //Function to Broadcast the clients hostname and local address to the network
     public static void broadcast(String nodeName, InetAddress address) throws IOException {
+        //create a socket to broadcast from and enables it to broadcast
         broadSock = new DatagramSocket();
         broadSock.setBroadcast(true);
         
+        //create packet data
         byte[] buf = nodeName.getBytes();
+
+        //load packet with the data and broadcasts to the network
         DatagramPacket p = new DatagramPacket(buf, buf.length, address, 12121);
         broadSock.send(p);
         broadSock.close();
+    }
+
+    //Establish a list of Network Interfaces currently on the network
+    List<InetAddress> listAllBroadcastAddresses() throws SocketException {
+        //instantiate list InetAddresses
+        List<InetAddress> broadcastList = new ArrayList<>();
+
+        //an enumerated list that contains hostname IP of interfaces
+        Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+        while (interfaces.hasMoreElements()) {
+            NetworkInterface networkInterface = interfaces.nextElement();
+    
+            if (networkInterface.isLoopback() || !networkInterface.isUp()) {
+                continue;
+            }
+    
+            networkInterface.getInterfaceAddresses().stream()
+            .filter(address -> address.getBroadcast() != null)
+            .map(address -> address.getBroadcast())
+            .forEach(broadcastList::add);
+        }
+        return broadcastList;
     }
 
 }//End of Client class
