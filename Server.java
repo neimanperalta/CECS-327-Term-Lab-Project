@@ -12,13 +12,18 @@ public class Server {
         //Attempts to establish a connection and waits for the client
         Socket clientSocket = serverSocket.accept();
 
-        DataInputStream in = new DataInputStream(clientSocket.getInputStream() );
+        //Reads in the input that was recieved from the client server
+        DataInputStream din = new DataInputStream(clientSocket.getInputStream() );
 
-        String string = (String) in.readUTF();
+        //Storing what was written from the client connection
+        String string = (String) din.readUTF();
 
+        //Printing that the message has been recieved
         System.out.println("message= " + string);
 
+        //Closing of the socket
         serverSocket.close();
-    }
 
-}
+    }//Close of Main Runner
+
+}//End of Server class
