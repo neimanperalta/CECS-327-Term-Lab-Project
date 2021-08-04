@@ -3,7 +3,7 @@ import java.net.*;
 
 public class Server {
     
-    public static void main(String args[] )
+    public static void main(String args[] ) throws UnknownHostException, IOException
     {
         
         //Socket that will be used for the server to communicate
