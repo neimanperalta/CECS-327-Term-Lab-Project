@@ -7,7 +7,7 @@ public class Server {
     {
         
         //Socket that will be used for the server to communicate
-        ServerSocket serverSocket = new ServerSocket(1234);
+        ServerSocket serverSocket = new ServerSocket(8080);
 
         //Attempts to establish a connection and waits for the client
         Socket clientSocket = serverSocket.accept();

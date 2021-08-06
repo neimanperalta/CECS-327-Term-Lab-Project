@@ -2,7 +2,6 @@ import java.net.*;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.stream.Collectors;
 import java.io.*;
 
 public class Client {
@@ -14,7 +13,7 @@ public class Client {
     public static void main (String[]args) throws UnknownHostException, IOException {
                
         //Client socket
-        Socket clientSocket = new Socket("localhost",1234);
+        Socket clientSocket = new Socket("localhost",8080);
 
         //Retrieve the host name and address of client
         clientHostName = InetAddress.getLocalHost().getHostName();
@@ -68,11 +67,13 @@ public class Client {
         broadSock = new DatagramSocket();
         broadSock.setBroadcast(true);
         
-        //create packet data
+        //create buffer for the incoming packet
         byte[] buf = nodeName.getBytes();
 
         //load packet with the data and broadcasts to the network
         DatagramPacket p = new DatagramPacket(buf, buf.length, address, 12121);
+        
+        //send_it.gif
         broadSock.send(p);
         broadSock.close();
     }
