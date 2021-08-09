@@ -17,7 +17,7 @@ public class Client {
 
         //Retrieve the host name and address of client
         clientHostName = InetAddress.getLocalHost().getHostName();
-        clientAddress = InetAddress.getLocalHost();
+        clientAddress = InetAddress.getByName("localhost");
 
         //Broadcast a Packet to Network for discovery
         broadcast(clientHostName, clientAddress); 
@@ -68,7 +68,7 @@ public class Client {
         broadSock.setBroadcast(true);
         
         //create buffer for the incoming packet
-        byte[] buf = nodeName.getBytes();
+        byte[] buf = (nodeName + " is broadcasting").getBytes();
 
         //load packet with the data and broadcasts to the network
         DatagramPacket p = new DatagramPacket(buf, buf.length, address, 12121);
