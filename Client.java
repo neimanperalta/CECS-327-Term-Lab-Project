@@ -1,103 +1,153 @@
 import java.net.*;
 import java.util.List;
+import java.util.Scanner;
+import java.util.StringTokenizer;
 import java.util.ArrayList;
-import java.util.Enumeration;
 import java.io.*;
 
 public class Client {
 
-    private static DatagramSocket broadSock = null;
-    private static String clientHostName = null;
-    private static InetAddress clientAddress = null;
+    // private static DatagramSocket broadSock = null;
+    // private static String clientHostName = null;
+    // private static InetAddress clientAddress = null;
+    static List<ClientHandler> clientList = new ArrayList<>();
 
     public static void main (String[]args) throws UnknownHostException, IOException {
-               
-        //Client socket
-        Socket clientSocket = new Socket("localhost",8080);
-
-        //Retrieve the host name and address of client
-        clientHostName = InetAddress.getLocalHost().getHostName();
-        clientAddress = InetAddress.getByName("localhost");
-
-        //Broadcast a Packet to Network for discovery
-        broadcast(clientHostName, clientAddress); 
-
-        //Reads in what the server types from the socket
-        DataInputStream din = new DataInputStream(clientSocket.getInputStream() );
-
-        //Outputs what the server types from the socket
-        DataOutputStream dout = new DataOutputStream(clientSocket.getOutputStream() );
-
-        //BufferedReader to make things more legible
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in) );
-
-        //Strings that will store what the client says back
-        String string1 = "";
-        String string2 = "";
-
-        //Keep looping until the server says stop
-        while(!string1.equals("stop") )
-        {
-            //Reads in what was inputted by client
-            string1 = br.readLine();
-
-            //Writes to the socket what was read in from string1, so the server side can read it
-            dout.writeUTF(string1);
-
-            dout.flush();
-
-            //Reads what was written from the server side and stores it
-            string2 = din.readUTF();
-
-            //Outputs to the console what the server socket has said
-            System.out.println("Server says: " + string2);
-        }
-
-        //Forces bytes to be written to the stream
-        dout.flush();
-
-        //Closing of the client socket
-        clientSocket.close();
-
-    }//End of main runner
-
-    //Function to Broadcast the clients hostname and local address to the network
-    public static void broadcast(String nodeName, InetAddress address) throws IOException {
-        //create a socket to broadcast from and enables it to broadcast
-        broadSock = new DatagramSocket();
-        broadSock.setBroadcast(true);
         
-        //create buffer for the incoming packet
-        byte[] buf = (nodeName + " is broadcasting").getBytes();
+        ServerSocket serverSock = new ServerSocket(8888);
+        Socket clientSock;
+        int clientCount = 0;
 
-        //load packet with the data and broadcasts to the network
-        DatagramPacket p = new DatagramPacket(buf, buf.length, address, 12121);
-        
-        //send_it.gif
-        broadSock.send(p);
-        broadSock.close();
-    }
+        while (true) {
+            clientSock = serverSock.accept();
+            System.out.println("New client request received : " + clientSock);
 
-    //Establish a list of Network Interfaces currently on the network
-    List<InetAddress> listAllBroadcastAddresses() throws SocketException {
-        //instantiate list InetAddresses
-        List<InetAddress> broadcastList = new ArrayList<>();
+            // obtain input and output streams
+            // InputStream fis = new InputStream();
+            // DataOutputStream dout = new DataOutputStream(clientSock.getOutputStream());
 
-        //an enumerated list that contains hostname IP of interfaces
-        Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
-        while (interfaces.hasMoreElements()) {
-            NetworkInterface networkInterface = interfaces.nextElement();
+            // BufferedInputStream bis = new BufferedInputStream(fis);
+
+                
+            System.out.println("Creating a new handler for this client...");
+
+            // Create a new handler object for handling this request.
+            ClientHandler clientObj = new ClientHandler(clientSock,"client " + clientCount);
+
+            // Create a new Thread with this object.
+            Thread clientThread = new Thread(clientObj);
+                
+            System.out.println("Adding this client to active client list");
     
-            if (networkInterface.isLoopback() || !networkInterface.isUp()) {
-                continue;
-            }
+            // add this client to active clients list
+            clientList.add(clientObj);
     
-            networkInterface.getInterfaceAddresses().stream()
-            .filter(address -> address.getBroadcast() != null)
-            .map(address -> address.getBroadcast())
-            .forEach(broadcastList::add);
+            // start the thread.
+            clientThread.start();
+    
+            // increment i for new client.
+            // i is used for naming only, and can be replaced
+            // by any naming scheme
+            clientCount++;
         }
-        return broadcastList;
-    }
+        
+    }//End of main runner    
 
 }//End of Client class
+
+class ClientHandler implements Runnable {
+    
+    static List<File> loF = new ArrayList<>();
+    private String name;
+    Socket s;
+    // boolean isloggedin;
+      
+    // constructor
+    public ClientHandler(Socket s, String name) {
+        this.name = name;
+        this.s = s;
+        // this.isloggedin=true;
+    }
+  
+    @Override
+    public void run() {
+  
+        // String received;
+        // List<String> fileDirLocal;
+        // // create a list of ther files (by byter?)
+        // // compare fileDirIn with fileDirLocal by iterating through list to compare by size
+        // // if byte size is different, check timestamps (most recent should overwrite old file)
+        // // optional : run byte check after file transfer to confirm file dir has the same contents
+        // // close client thread
+        // List<String> fileDirIn;
+        // while (true) {
+
+        //     try {
+        //         // receive the string
+        //         received = din.readUTF();         
+                    
+        //         System.out.println(received);
+                    
+        //         if(received.equals("logout")) { //if eof()
+        //             this.isloggedin=false;
+        //             break;
+        //         }
+
+        // Creating a File object for directory
+        File directoryPath = new File("C:\\temp\\TermProject");
+        File filesList[] = directoryPath.listFiles();
+        for (File file : filesList){
+            loF.add(file);
+        }
+
+        for (File file : loF) {
+            // List of all files and directories
+            try {
+                FileInputStream fis = new FileInputStream(file);
+                BufferedInputStream buffIn = new BufferedInputStream(fis);
+                byte[] buffer = new byte[(int) file.length()];
+
+                buffIn.read(buffer, 0, buffer.length);
+                OutputStream out = s.getOutputStream();
+                out.flush();
+                buffIn.close();
+            } catch (Exception e) {
+                System.out.println(e);
+            }
+        }
+    }
+}
+
+
+                    
+        //         // break the string into message and recipient part
+        //         StringTokenizer st = new StringTokenizer(received, "#");
+        //         String MsgToSend = st.nextToken();
+        //         String recipient = st.nextToken();
+
+        //         // search for the recipient in the connected devices list.
+        //         // ar is the vector storing client of active users
+        //         for (ClientHandler mc : Client.clientList) 
+        //         {
+        //             // if the recipient is found, write on its
+        //             // output stream
+        //             if (mc.name.equals(recipient) && mc.isloggedin==true) 
+        //             {
+        //                 mc.dout.writeUTF(this.name+" : "+MsgToSend);
+        //                 break;
+        //             }
+        //         }
+        //     }  catch(Exception e) {
+        //         System.out.println(e);
+        //     }
+        // }
+
+        // try {
+        //     // closing resources
+        //     this.din.close();
+        //     this.dout.close();
+        // } catch (Exception e) {
+        //     System.out.println(e);
+        // }
+//     }
+// }
