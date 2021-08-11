@@ -59,95 +59,87 @@ class ClientHandler implements Runnable {
     
     static List<File> loF = new ArrayList<>();
     private String name;
+    BufferedOutputStream buffOS;
+    BufferedInputStream buffIS; 
+    DataOutputStream dataOS;
+    DataInputStream dataIS;
+    FileInputStream fileIS;
+    FileOutputStream fileOS;
     Socket s;
-    // boolean isloggedin;
       
     // constructor
     public ClientHandler(Socket s, String name) {
         this.name = name;
         this.s = s;
-        // this.isloggedin=true;
     }
   
     @Override
     public void run() {
-  
-        // String received;
-        // List<String> fileDirLocal;
+        try {
         // // create a list of ther files (by byter?)
         // // compare fileDirIn with fileDirLocal by iterating through list to compare by size
         // // if byte size is different, check timestamps (most recent should overwrite old file)
         // // optional : run byte check after file transfer to confirm file dir has the same contents
         // // close client thread
-        // List<String> fileDirIn;
-        // while (true) {
-
-        //     try {
-        //         // receive the string
-        //         received = din.readUTF();         
-                    
-        //         System.out.println(received);
-                    
-        //         if(received.equals("logout")) { //if eof()
-        //             this.isloggedin=false;
-        //             break;
-        //         }
 
         // Creating a File object for directory
-        File directoryPath = new File("C:\\temp\\TermProject");
-        File filesList[] = directoryPath.listFiles();
-        for (File file : filesList){
-            loF.add(file);
-        }
+        // File directoryPath = new File("C:\\temp\\TermProject");
+        // File filesList[] = directoryPath.listFiles();
+        // for (File file : filesList){
+        //     loF.add(file);
+        // }
 
-        for (File file : loF) {
-            // List of all files and directories
-            try {
-                FileInputStream fis = new FileInputStream(file);
-                BufferedInputStream buffIn = new BufferedInputStream(fis);
-                byte[] buffer = new byte[(int) file.length()];
+        File[] files = new File("C:\\temp\\TermProject").listFiles();
 
-                buffIn.read(buffer, 0, buffer.length);
-                OutputStream out = s.getOutputStream();
-                out.flush();
-                buffIn.close();
-            } catch (Exception e) {
-                System.out.println(e);
-            }
+        buffOS = new BufferedOutputStream(s.getOutputStream());
+        dataOS = new DataOutputStream(buffOS);
+
+        dataOS.writeInt(files.length);
+
+        for(File file : files) {
+            long length = file.length();
+            dataOS.writeLong(length);
+
+            String name = file.getName();
+            dataOS.writeUTF(name);
+
+            fileIS = new FileInputStream(file);
+            buffIS = new BufferedInputStream(fileIS);
+
+            int i = 0;
+            while((i = buffIS.read()) != -1) buffOS.write(i);
+            buffIS.close();
         }
+        
+    dataOS.close();
+
+    buffIS = new BufferedInputStream(s.getInputStream());
+    dataIS = new DataInputStream(buffIS);
+
+    int filesCount = dataIS.readInt();
+    File[] filesIN = new File[filesCount];
+
+    for(int i = 0; i < filesCount; i++)
+    {
+        long fileLength = dataIS.readLong();
+        String fileName = dataIS.readUTF();
+
+        filesIN[i] = new File("C:\\temp\\TermProject\\TempFiles" + "/" + fileName);
+
+        fileOS = new FileOutputStream(filesIN[i]);
+        buffOS = new BufferedOutputStream(fileOS);
+
+        for(int j = 0; j < fileLength; j++) buffOS.write(buffIS.read());
+
+        buffOS.close();
+    }
+
+    dataIS.close();
+
+
+    } catch (Exception ex) {
+        System.out.println(ex);
     }
 }
 
-
-                    
-        //         // break the string into message and recipient part
-        //         StringTokenizer st = new StringTokenizer(received, "#");
-        //         String MsgToSend = st.nextToken();
-        //         String recipient = st.nextToken();
-
-        //         // search for the recipient in the connected devices list.
-        //         // ar is the vector storing client of active users
-        //         for (ClientHandler mc : Client.clientList) 
-        //         {
-        //             // if the recipient is found, write on its
-        //             // output stream
-        //             if (mc.name.equals(recipient) && mc.isloggedin==true) 
-        //             {
-        //                 mc.dout.writeUTF(this.name+" : "+MsgToSend);
-        //                 break;
-        //             }
-        //         }
-        //     }  catch(Exception e) {
-        //         System.out.println(e);
-        //     }
-        // }
-
-        // try {
-        //     // closing resources
-        //     this.din.close();
-        //     this.dout.close();
-        // } catch (Exception e) {
-        //     System.out.println(e);
-        // }
-//     }
-// }
+}
