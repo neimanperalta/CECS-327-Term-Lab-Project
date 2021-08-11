@@ -1,4 +1,5 @@
 import java.net.*;
+import java.util.Enumeration;
 import java.io.*;
 
 public class Client {
@@ -6,6 +7,22 @@ public class Client {
 
         ServerSocket serverSocket = new ServerSocket(8000);
         Socket clientSocket = new Socket(InetAddress.getLocalHost(), 8000);
+
+        try {
+            Enumeration<NetworkInterface> nics = NetworkInterface
+                    .getNetworkInterfaces();
+            while (nics.hasMoreElements()) {
+                NetworkInterface nic = nics.nextElement();
+                Enumeration<InetAddress> addrs = nic.getInetAddresses();
+                while (addrs.hasMoreElements()) {
+                    InetAddress addr = addrs.nextElement();
+                    System.out.printf("%s %s%n", nic.getName(),
+                            addr.getHostAddress());
+                }
+            }
+        } catch (SocketException e) {
+            e.printStackTrace();
+        }
 
         System.out.println("Waiting for connection...");
 
