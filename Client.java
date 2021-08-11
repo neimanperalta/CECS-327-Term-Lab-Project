@@ -1,103 +1,49 @@
 import java.net.*;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Enumeration;
 import java.io.*;
 
 public class Client {
-
-    private static DatagramSocket broadSock = null;
-    private static String clientHostName = null;
-    private static InetAddress clientAddress = null;
-
     public static void main (String[]args) throws UnknownHostException, IOException {
-               
+
+
+        System.out.println("Waiting for connection...");
+
         //Client socket
-        Socket clientSocket = new Socket("localhost",8080);
-
-        //Retrieve the host name and address of client
-        clientHostName = InetAddress.getLocalHost().getHostName();
-        clientAddress = InetAddress.getLocalHost();
-
-        //Broadcast a Packet to Network for discovery
-        broadcast(clientHostName, clientAddress); 
-
-        //Reads in what the server types from the socket
-        DataInputStream din = new DataInputStream(clientSocket.getInputStream() );
-
-        //Outputs what the server types from the socket
-        DataOutputStream dout = new DataOutputStream(clientSocket.getOutputStream() );
-
-        //BufferedReader to make things more legible
-        BufferedReader br = new BufferedReader(new InputStreamReader(System.in) );
-
-        //Strings that will store what the client says back
-        String string1 = "";
-        String string2 = "";
-
-        //Keep looping until the server says stop
-        while(!string1.equals("stop") )
-        {
-            //Reads in what was inputted by client
-            string1 = br.readLine();
-
-            //Writes to the socket what was read in from string1, so the server side can read it
-            dout.writeUTF(string1);
-
-            dout.flush();
-
-            //Reads what was written from the server side and stores it
-            string2 = din.readUTF();
-
-            //Outputs to the console what the server socket has said
-            System.out.println("Server says: " + string2);
+        while (true) {
+            ServerSocket serverSocket = new ServerSocket(8000);
+            new clientThread(serverSocket.accept()).start();
+            serverSocket.close();
+            Socket clientSocket = new Socket(InetAddress.getLocalHost(), 8001);
+            new clientThread(clientSocket);
+            clientSocket.close();
         }
+    }
+}
 
-        //Forces bytes to be written to the stream
-        dout.flush();
+class clientThread extends Thread{
+    private Socket sock = null;
+    private InetAddress ip;
+    private int port = 0;
 
-        //Closing of the client socket
-        clientSocket.close();
-
-    }//End of main runner
-
-    //Function to Broadcast the clients hostname and local address to the network
-    public static void broadcast(String nodeName, InetAddress address) throws IOException {
-        //create a socket to broadcast from and enables it to broadcast
-        broadSock = new DatagramSocket();
-        broadSock.setBroadcast(true);
-        
-        //create buffer for the incoming packet
-        byte[] buf = nodeName.getBytes();
-
-        //load packet with the data and broadcasts to the network
-        DatagramPacket p = new DatagramPacket(buf, buf.length, address, 12121);
-        
-        //send_it.gif
-        broadSock.send(p);
-        broadSock.close();
+    public clientThread(Socket sock) {
+        this.sock = sock;
     }
 
-    //Establish a list of Network Interfaces currently on the network
-    List<InetAddress> listAllBroadcastAddresses() throws SocketException {
-        //instantiate list InetAddresses
-        List<InetAddress> broadcastList = new ArrayList<>();
+    public clientThread(InetAddress ip, int port) {
+        this.ip = ip;
+        this.port = port;
+    }
 
-        //an enumerated list that contains hostname IP of interfaces
-        Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
-        while (interfaces.hasMoreElements()) {
-            NetworkInterface networkInterface = interfaces.nextElement();
-    
-            if (networkInterface.isLoopback() || !networkInterface.isUp()) {
-                continue;
+    @Override
+    public void run() {
+        try {
+            System.out.println("connection has been made!");
+            if (port !=0) {
+                System.out.println(ip + " has connected");
             }
-    
-            networkInterface.getInterfaceAddresses().stream()
-            .filter(address -> address.getBroadcast() != null)
-            .map(address -> address.getBroadcast())
-            .forEach(broadcastList::add);
+            //do sync 
+            sock.close();
+        } catch (IOException e) {
+            System.out.println(e);
         }
-        return broadcastList;
     }
-
-}//End of Client class
+}
