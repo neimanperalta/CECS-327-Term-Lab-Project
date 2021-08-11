@@ -4,17 +4,16 @@ import java.io.*;
 public class Client {
     public static void main (String[]args) throws UnknownHostException, IOException {
 
+        ServerSocket serverSocket = new ServerSocket(8000);
+        Socket clientSocket = new Socket(InetAddress.getLocalHost(), 8000);
 
         System.out.println("Waiting for connection...");
 
         //Client socket
         while (true) {
-            ServerSocket serverSocket = new ServerSocket(8000);
             new clientThread(serverSocket.accept()).start();
-            serverSocket.close();
-            Socket clientSocket = new Socket(InetAddress.getLocalHost(), 8001);
+            System.out.println(clientSocket);
             new clientThread(clientSocket);
-            clientSocket.close();
         }
     }
 }
