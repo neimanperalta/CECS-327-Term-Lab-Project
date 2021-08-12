@@ -12,11 +12,13 @@ import java.net.ServerSocket;
 
 public class Rece {
     public static void main(String[] args) throws IOException {
+        // the directory to scan for files
         String dirPath = "c:/temp/receive/";
 
         ServerSocket serverSocket = new ServerSocket(1234);
         Socket socket = serverSocket.accept();
 
+        // get the input from the sender socket
         BufferedInputStream bis = new BufferedInputStream(socket.getInputStream());
         DataInputStream dis = new DataInputStream(bis);
 

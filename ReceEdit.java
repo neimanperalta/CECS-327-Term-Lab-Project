@@ -13,11 +13,13 @@ import java.net.ServerSocket;
 
 public class ReceEdit {
     public static void main(String[] args) throws IOException {
+        // the directory to scan for files
         String dirPath = "c:/temp/receive/";
 
         ServerSocket serverSocket = new ServerSocket(1234);
         Socket socket = serverSocket.accept();
 
+        // get the input from the sender socket
         BufferedInputStream bis = new BufferedInputStream(socket.getInputStream());
         DataInputStream dis = new DataInputStream(bis);
 
@@ -33,6 +35,9 @@ public class ReceEdit {
             numFiles = filesCount;
         ///
 
+        // read each files and write it to the directory, =
+        // condition checking for duplicate is implemented 
+        // but timestamp/file size is not condsitered
         for(int i = 0;i<numFiles;i++)
         {
             long fileLength = dis.readLong();
